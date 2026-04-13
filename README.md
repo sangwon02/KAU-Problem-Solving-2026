@@ -1,1 +1,1 @@
-# KAU-Problem-Solving-2026
+# Algorithm-Archive
