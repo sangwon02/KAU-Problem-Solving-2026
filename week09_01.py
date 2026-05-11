@@ -1,81 +1,91 @@
 import sys
 input = sys.stdin.readline
 
+# 트리를 구성하는 기본 단위인 '노드' 클래스입니다.
 class node:
     def __init__(self, x):
-        self.key = x
-        self.left = None
-        self.right = None
-        self.parent = None
+        self.key = x        # 노드의 값 (예: 'A', 'B' 등)
+        self.left = None    # 왼쪽 자식 노드를 가리키는 포인터
+        self.right = None   # 오른쪽 자식 노드를 가리키는 포인터
 
+# 전체 트리를 관리하는 '트리' 클래스입니다.
 class tree:
     def __init__(self):
-        self.root = None
+        # 트리에 존재하는 모든 노드를 딕셔너리로 관리합니다.
+        # 키(key)는 노드의 이름('A'), 값(value)은 실제 node 객체입니다.
+        # 이렇게 하면 특정 이름의 노드를 O(1)의 속도로 빠르게 찾을 수 있습니다.
+        self.nodes = {}
         
-    # 부모를 찾아 자식을 달아줌
-    def insert(self, parent_key, left_key, right_key):
-        # 트리가 비어있다면 루트 노드 생성
-        if self.root is None:
-            self.root = node(parent_key)
+    # 트리에 새로운 노드와 그 자식들을 연결하는 메서드입니다.
+    def add_node(self, parent_key, left_key, right_key):
+        # 1. 부모 노드가 아직 트리에 없다면 새로 생성해서 딕셔너리에 넣습니다.
+        if parent_key not in self.nodes:
+            self.nodes[parent_key] = node(parent_key)
         
-        # 부모 노드를 탐색
-        parent_node = self.search_node(self.root, parent_key)
+        # 부모 노드 객체를 가져옵니다.
+        parent_node = self.nodes[parent_key]
         
-        # 부모 노드를 찾았다면 자식들을 추가
-        if parent_node is not None:
-            if left_key != '.':
-                parent_node.left = node(left_key)
-                parent_node.left.parent = parent_node
-            if right_key != '.':
-                parent_node.right = node(right_key)
-                parent_node.right.parent = parent_node
-
-
-    def search_node(self, current, x):
-        if current is None:
-            return None
-        
-        if current.key == x:
-            return current
-        
-        # 크기 비교가 아닌 왼쪽을 먼저 끝까지 찾음
-        left_result = self.search_node(current.left, x)
-        if left_result is not None:
-            return left_result
+        # 2. 왼쪽 자식이 있다면 ('.'이 아니라면)
+        if left_key != '.':
+            # 왼쪽 자식 노드가 트리에 없다면 새로 생성합니다.
+            if left_key not in self.nodes:
+                self.nodes[left_key] = node(left_key)
+            # 부모 노드의 왼쪽 자식으로 연결합니다.
+            parent_node.left = self.nodes[left_key]
             
-        # 왼쪽 서브트리에 없다면 오른쪽 서브트리를 찾음
-        return self.search_node(current.right, x)
+        # 3. 오른쪽 자식이 있다면 ('.'이 아니라면)
+        if right_key != '.':
+            # 오른쪽 자식 노드가 트리에 없다면 새로 생성합니다.
+            if right_key not in self.nodes:
+                self.nodes[right_key] = node(right_key)
+            # 부모 노드의 오른쪽 자식으로 연결합니다.
+            parent_node.right = self.nodes[right_key]
 
-    # 순회 로직
+    # 전위 순회 (Root -> Left -> Right)
     def preorder(self, current):
         if current is not None:
-            print(current.key, end='')
-            self.preorder(current.left)
-            self.preorder(current.right)
+            print(current.key, end='')  # 1. 자기 자신(루트) 출력
+            self.preorder(current.left) # 2. 왼쪽 자식 탐색
+            self.preorder(current.right)# 3. 오른쪽 자식 탐색
 
+    # 중위 순회 (Left -> Root -> Right)
     def inorder(self, current):
         if current is not None:
-            self.inorder(current.left)
-            print(current.key, end='')
-            self.inorder(current.right)
+            self.inorder(current.left)  # 1. 왼쪽 자식 탐색
+            print(current.key, end='')  # 2. 자기 자신(루트) 출력
+            self.inorder(current.right) # 3. 오른쪽 자식 탐색
 
+    # 후위 순회 (Left -> Right -> Root)
     def postorder(self, current):
         if current is not None:
-            self.postorder(current.left)
-            self.postorder(current.right)
-            print(current.key, end='')
+            self.postorder(current.left)  # 1. 왼쪽 자식 탐색
+            self.postorder(current.right) # 2. 오른쪽 자식 탐색
+            print(current.key, end='')    # 3. 자기 자신(루트) 출력
 
+# ================= 메인 실행 부분 =================
 
+# 노드의 개수 N을 입력받습니다.
 N = int(input().strip())
 
+# 빈 트리를 하나 생성합니다.
 my_tree = tree()
 
-for i in range(N):
+# N번 반복하면서 트리에 노드를 추가합니다.
+for _ in range(N):
+    # p: 부모, l: 왼쪽 자식, r: 오른쪽 자식
     p, l, r = input().split()
-    my_tree.insert(p, l, r)
+    my_tree.add_node(p, l, r)
 
-my_tree.preorder(my_tree.root)
-print()
-my_tree.inorder(my_tree.root)
-print()
-my_tree.postorder(my_tree.root)
+# 문제의 조건에 따라 항상 'A'가 최상위 루트 노드입니다.
+root_node = my_tree.nodes['A']
+
+# 전위 순회 결과 출력
+my_tree.preorder(root_node)
+print() # 줄바꿈
+
+# 중위 순회 결과 출력
+my_tree.inorder(root_node)
+print() # 줄바꿈
+
+# 후위 순회 결과 출력
+my_tree.postorder(root_node)
